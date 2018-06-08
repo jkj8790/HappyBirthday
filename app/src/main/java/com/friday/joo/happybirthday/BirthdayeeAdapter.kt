@@ -9,7 +9,7 @@ import kotlinx.android.synthetic.main.item_birthdayee.view.*
 import java.util.*
 
 class BirthdayeeAdapter(
-        private val birthdayeeList: List<Birthdayee>
+        var birthdayeeList: List<Birthdayee>
 ) : RecyclerView.Adapter<BirthdayeeAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
