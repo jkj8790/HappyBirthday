@@ -1,27 +1,38 @@
 package com.friday.joo.happybirthday
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.NavigationView
+import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import com.friday.joo.happybirthday.data.BirthdayeeRepository
-import com.friday.joo.happybirthday.data.MemoryCache
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.BufferedReader
-import java.io.InputStreamReader
 
 class MainActivity : AppCompatActivity() {
-
-    lateinit var birthdayeeRepository: BirthdayeeRepository
     lateinit var birthdayeeAdapter: BirthdayeeAdapter
+    lateinit var viewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        initUI()
+        val birthdayeeRepository = BirthdayeeRepository(this) //Todo Make this singleton
+        val viewModelFactory = MainViewModelFactory(birthdayeeRepository) //Todo Inject with Dagger
+        viewModel = ViewModelProviders.of(this, viewModelFactory)
+                .get(MainViewModel::class.java)
+        viewModel.birthdayeeLiveData
+                .observe(this, Observer<List<Birthdayee>> { birthdayeeList ->
+                    birthdayeeList?.apply { //Todo impl with DataBinding
+                        birthdayeeAdapter.birthdayeeList = this
+                        birthdayeeAdapter.notifyDataSetChanged()
+                    }
+                })
+    }
 
-        birthdayeeRepository = BirthdayeeRepository(this)
-        birthdayeeAdapter = BirthdayeeAdapter(emptyList())
+    private fun initUI() {
+        birthdayeeAdapter = BirthdayeeAdapter(mutableListOf())
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = birthdayeeAdapter
@@ -46,7 +57,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        birthdayeeAdapter.birthdayeeList = birthdayeeRepository.getBirthdayees()
-        birthdayeeAdapter.notifyDataSetChanged()
+        viewModel.sync() //Todo move to onActivityResult
     }
 }
